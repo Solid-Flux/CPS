@@ -35,11 +35,11 @@ fn add_cps(macro_name: &Ident, arm: CPSMacroRule) -> Vec<CPSMacroRule> {
 
     // Above is a special case of this for reduced macro recursion depth
     let inner_base_case: CPSMacroRule = syn::parse2(quote!{
-        (@_cps |:| $_cps_next_head:path $(| $_cps_next_tail:path)* |:| #( { #result_patterns } )* { #pattern } | $($_cps_stack:tt)*) => {
-            $_cps_next_head ! (@_cps |:|
-                $($_cps_next_tail)|* |:|
+        (@_cps |:| ( $_cps_next_head:tt ) $(| ( $_cps_next_tail:tt ) )* |:| #( { #result_patterns } )* { #pattern } | $($_cps_stack:tt)*) => {
+            $_cps_next_head ! { @_cps |:|
+                $( ( $_cps_next_tail ) )|* |:|
                 { #impl_tokens } $($_cps_stack)*
-            )
+            }
         }
     }).expect("could not build cps inner base case");
     output.push(inner_base_case);
@@ -52,11 +52,11 @@ fn add_cps(macro_name: &Ident, arm: CPSMacroRule) -> Vec<CPSMacroRule> {
         let binding_macro_path = binding.macro_invocation.path.clone();
         let binding_macro_args = binding.macro_invocation.tokens.clone();
         let inter_case: CPSMacroRule = syn::parse2(quote!{
-            (@_cps |:| $($_cps_next:path)|* |:| #( { #acc_result_patterns } )* { #pattern } | $($_cps_stack:tt)*) => {
-                #binding_macro_path ! (@_cps |:|
-                    #macro_name $(| $_cps_next:path)* |:|
+            (@_cps |:| $( ( $_cps_next:tt ) )|* |:| #( { #acc_result_patterns } )* { #pattern } | $($_cps_stack:tt)*) => {
+                #binding_macro_path ! { @_cps |:|
+                    ( #macro_name ) $(| ( $_cps_next:path ) )* |:|
                     { #binding_macro_args } | #( { #acc_result_clones } )* { #pattern_output_clone } | $($_cps_stack)*
-                )
+                }
             }
         }).expect("could not build cps inter case");
         output.push(inter_case);
@@ -70,7 +70,7 @@ fn add_cps(macro_name: &Ident, arm: CPSMacroRule) -> Vec<CPSMacroRule> {
     let pattern_out = pattern.build_output_clone();
     let entry: CPSMacroRule = syn::parse2(quote!{
         (#pattern) => {
-            #macro_name ! (@_cps |:|  |:| { #pattern_out } | )
+            #macro_name ! { @_cps |:|  |:| { #pattern_out } | }
         }
     }).expect("could not build cps entry case");
     output.push(entry);

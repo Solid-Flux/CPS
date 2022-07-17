@@ -1,13 +1,11 @@
 use std::fmt::Display;
 use proc_macro2::{Delimiter, Literal, Punct, TokenStream, TokenTree};
 use quote::{quote, TokenStreamExt, ToTokens};
-use quote::__private::ext::RepToTokensExt;
-use syn::{Error, Ident, Macro, MacroDelimiter, parse2, parse_macro_input, Token};
+use syn::{Ident, Macro, MacroDelimiter, parse2, Token};
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::parse::discouraged::Speculative;
-use syn::punctuated::Punctuated;
-use syn::token::{Brace, Bracket, Paren, Token};
+use syn::token::{Paren, Token};
 
 trait MyExtendable {
     fn add_message<S: Display>(self, input: ParseStream, msg: S) -> Self;

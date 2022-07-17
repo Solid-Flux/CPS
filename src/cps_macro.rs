@@ -1,9 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
-use std::collections::HashSet;
-use syn::parse::{Parse, ParseStream};
+use quote::{quote};
 use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, ItemMacro, MacroDelimiter, Token, parse_quote};
+use syn::{ItemMacro, Token, parse_quote};
 use crate::parse::{begins_with_cps_marker, CPSMacroRule, MacroMatch};
 
 fn assert_arm_valid(m: &CPSMacroRule) {
@@ -78,7 +76,7 @@ fn add_cps(macro_name: &Ident, arm: CPSMacroRule) -> Vec<CPSMacroRule> {
     return output;
 }
 
-pub fn impl_cps(_attr: TokenStream, mut m: ItemMacro) -> TokenStream {
+pub fn impl_cps(_attr: TokenStream, m: ItemMacro) -> TokenStream {
     // Check we're being applied to a macro_rules! definition
     let err = "expected a macro_rules! macro definition";
     assert_eq!(
@@ -101,7 +99,7 @@ pub fn impl_cps(_attr: TokenStream, mut m: ItemMacro) -> TokenStream {
 
     // Add cps to all rules
     let mut new_rules = Vec::new();
-    for mut rule in rules {
+    for rule in rules {
         let mut new_cps_rules = add_cps(&macro_name, rule);
         new_rules.append(&mut new_cps_rules);
     }
